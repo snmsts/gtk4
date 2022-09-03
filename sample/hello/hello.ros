@@ -1,0 +1,40 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  (asdf:load-asd (truename "../../gtk4.asd"))
+  #+quicklisp(ql:quickload '(:gtk4) :silent t)
+  )
+
+(defpackage :ros.script.hello.3863942106
+  (:use :cl :gtk4))
+(in-package :ros.script.hello.3863942106)
+
+(defun print-hello (widget)
+  (declare (ignorable widget))
+  (format t "Hello World~%")
+  (force-output))
+
+(defun activate (app)
+  (let ((window (gir:invoke (*gtk* "ApplicationWindow" :new) app)))
+    (setf (gir:property window :title) "Hello, world")
+    (gir:invoke (window :set-default-size) 320 200)
+    (let ((button (gir:invoke (*gtk* "Button" :new-with-label) "Hello, world")))
+      (gir:connect button :clicked #'print-hello)
+      (gir:invoke (window :set-child) button))
+    (gir:invoke (window :present))))
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (gtk4:setup-namespace)
+  (gir:invoke (*gtk* :init))
+  (let ((app (gir:invoke (*gtk* "Application" :new)
+                         "org.gtk.example"
+                         (gir:nget *gio* "ApplicationFlags" :flags-none))))
+    (gir:connect app :activate #'activate)
+    (let ((status (gir:invoke (app :run) (cons (namestring *load-truename*) argv))))
+      status)))
+;;; vim: set ft=lisp lisp:

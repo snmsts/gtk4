@@ -1,0 +1,149 @@
+--- swig_cairo.lisp	2022-08-27 20:12:42.352442600 +0800
++++ cairo.lisp	2022-08-27 20:30:59.236493600 +0800
+@@ -4,60 +4,18 @@
+ ;;; Do not make changes to this file unless you know what you are doing--modify
+ ;;; the SWIG interface file instead.
+ 
++(uiop/package:define-package :gtk4/swig/cairo
++  (:use :cl :cffi :gtk4/swig-wrap)
++  (:nicknames :gtk4/cairo)
++  (:export
++   ))
++(in-package :gtk4/swig/cairo)
+ 
+-;;;SWIG wrapper code starts here
+-
+-(cl:defmacro defanonenum (cl:&body enums)
+-   "Converts anonymous enums to defconstants."
+-  `(cl:progn ,@(cl:loop for value in enums
+-                        for index = 0 then (cl:1+ index)
+-                        when (cl:listp value) do (cl:setf index (cl:second value)
+-                                                          value (cl:first value))
+-                        collect `(cl:defconstant ,value ,index))))
+-
+-(cl:eval-when (:compile-toplevel :load-toplevel)
+-  (cl:unless (cl:fboundp 'swig-lispify)
+-    (cl:defun swig-lispify (name flag cl:&optional (package cl:*package*))
+-      (cl:labels ((helper (lst last rest cl:&aux (c (cl:car lst)))
+-                    (cl:cond
+-                      ((cl:null lst)
+-                       rest)
+-                      ((cl:upper-case-p c)
+-                       (helper (cl:cdr lst) 'upper
+-                               (cl:case last
+-                                 ((lower digit) (cl:list* c #\- rest))
+-                                 (cl:t (cl:cons c rest)))))
+-                      ((cl:lower-case-p c)
+-                       (helper (cl:cdr lst) 'lower (cl:cons (cl:char-upcase c) rest)))
+-                      ((cl:digit-char-p c)
+-                       (helper (cl:cdr lst) 'digit 
+-                               (cl:case last
+-                                 ((upper lower) (cl:list* c #\- rest))
+-                                 (cl:t (cl:cons c rest)))))
+-                      ((cl:char-equal c #\_)
+-                       (helper (cl:cdr lst) '_ (cl:cons #\- rest)))
+-                      (cl:t
+-                       (cl:error "Invalid character: ~A" c)))))
+-        (cl:let ((fix (cl:case flag
+-                        ((constant enumvalue) "+")
+-                        (variable "*")
+-                        (cl:t ""))))
+-          (cl:intern
+-           (cl:concatenate
+-            'cl:string
+-            fix
+-            (cl:nreverse (helper (cl:concatenate 'cl:list name) cl:nil cl:nil))
+-            fix)
+-           package))))))
+-
+-;;;SWIG wrapper code ends here
+-
+-
+-(cl:defconstant #.(swig-lispify "CAIRO_VERSION" 'constant) (cl:* (1 (cl:+ 10000) (16) (cl:+ 100) (0) 1)))
++(define-constant #.(swig-lispify "CAIRO_VERSION" 'constant) (cl:* (1 (cl:+ 10000) (16) (cl:+ 100) (0) 1)))
+ 
+ (cl:export '#.(swig-lispify "CAIRO_VERSION" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_VERSION_STRING" 'constant) "1.16.0")
++(define-constant #.(swig-lispify "CAIRO_VERSION_STRING" 'constant) "1.16.0")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_VERSION_STRING" 'constant))
+ 
+@@ -721,11 +679,11 @@
+ 
+ (cl:export '#.(swig-lispify "cairo_rectangle_list_destroy" 'function))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_TAG_DEST" 'constant) "cairo.dest")
++(define-constant #.(swig-lispify "CAIRO_TAG_DEST" 'constant) "cairo.dest")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_TAG_DEST" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_TAG_LINK" 'constant) "Link")
++(define-constant #.(swig-lispify "CAIRO_TAG_LINK" 'constant) "Link")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_TAG_LINK" 'constant))
+ 
+@@ -1790,51 +1748,51 @@
+ 
+ (cl:export '#.(swig-lispify "cairo_surface_set_user_data" 'function))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_JPEG" 'constant) "image/jpeg")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_JPEG" 'constant) "image/jpeg")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_JPEG" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_PNG" 'constant) "image/png")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_PNG" 'constant) "image/png")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_PNG" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_JP2" 'constant) "image/jp2")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_JP2" 'constant) "image/jp2")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_JP2" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_URI" 'constant) "text/x-uri")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_URI" 'constant) "text/x-uri")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_URI" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_UNIQUE_ID" 'constant) "application/x-cairo.uuid")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_UNIQUE_ID" 'constant) "application/x-cairo.uuid")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_UNIQUE_ID" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_JBIG2" 'constant) "application/x-cairo.jbig2")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_JBIG2" 'constant) "application/x-cairo.jbig2")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_JBIG2" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_JBIG2_GLOBAL" 'constant) "application/x-cairo.jbig2-global")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_JBIG2_GLOBAL" 'constant) "application/x-cairo.jbig2-global")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_JBIG2_GLOBAL" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID" 'constant) "application/x-cairo.jbig2-global-id")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID" 'constant) "application/x-cairo.jbig2-global-id")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_JBIG2_GLOBAL_ID" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_CCITT_FAX" 'constant) "image/g3fax")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_CCITT_FAX" 'constant) "image/g3fax")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_CCITT_FAX" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_CCITT_FAX_PARAMS" 'constant) "application/x-cairo.ccitt.params")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_CCITT_FAX_PARAMS" 'constant) "application/x-cairo.ccitt.params")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_CCITT_FAX_PARAMS" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_EPS" 'constant) "application/postscript")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_EPS" 'constant) "application/postscript")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_EPS" 'constant))
+ 
+-(cl:defconstant #.(swig-lispify "CAIRO_MIME_TYPE_EPS_PARAMS" 'constant) "application/x-cairo.eps.params")
++(define-constant #.(swig-lispify "CAIRO_MIME_TYPE_EPS_PARAMS" 'constant) "application/x-cairo.eps.params")
+ 
+ (cl:export '#.(swig-lispify "CAIRO_MIME_TYPE_EPS_PARAMS" 'constant))
+ 

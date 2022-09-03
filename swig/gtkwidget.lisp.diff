@@ -1,0 +1,391 @@
+--- swig_gtkwidget.lisp	2022-09-03 20:32:35.631488123 +0800
++++ gtkwidget.lisp	2022-09-03 21:27:29.768053853 +0800
+@@ -4,54 +4,18 @@
+ ;;; Do not make changes to this file unless you know what you are doing--modify
+ ;;; the SWIG interface file instead.
+ 
++(uiop/package:define-package :gtk4/swig/gtkwidget
++  (:use :cl :cffi :gtk4/swig-wrap)
++  (:nicknames :gtk4/gtkwidget)
++  (:export
++   ))
++(in-package :gtk4/swig/gtkwidget)
+ 
+-;;;SWIG wrapper code starts here
+-
+-(cl:defmacro defanonenum (cl:&body enums)
+-   "Converts anonymous enums to defconstants."
+-  `(cl:progn ,@(cl:loop for value in enums
+-                        for index = 0 then (cl:1+ index)
+-                        when (cl:listp value) do (cl:setf index (cl:second value)
+-                                                          value (cl:first value))
+-                        collect `(cl:defconstant ,value ,index))))
+-
+-(cl:eval-when (:compile-toplevel :load-toplevel)
+-  (cl:unless (cl:fboundp 'swig-lispify)
+-    (cl:defun swig-lispify (name flag cl:&optional (package cl:*package*))
+-      (cl:labels ((helper (lst last rest cl:&aux (c (cl:car lst)))
+-                    (cl:cond
+-                      ((cl:null lst)
+-                       rest)
+-                      ((cl:upper-case-p c)
+-                       (helper (cl:cdr lst) 'upper
+-                               (cl:case last
+-                                 ((lower digit) (cl:list* c #\- rest))
+-                                 (cl:t (cl:cons c rest)))))
+-                      ((cl:lower-case-p c)
+-                       (helper (cl:cdr lst) 'lower (cl:cons (cl:char-upcase c) rest)))
+-                      ((cl:digit-char-p c)
+-                       (helper (cl:cdr lst) 'digit 
+-                               (cl:case last
+-                                 ((upper lower) (cl:list* c #\- rest))
+-                                 (cl:t (cl:cons c rest)))))
+-                      ((cl:char-equal c #\_)
+-                       (helper (cl:cdr lst) '_ (cl:cons #\- rest)))
+-                      (cl:t
+-                       (cl:error "Invalid character: ~A" c)))))
+-        (cl:let ((fix (cl:case flag
+-                        ((constant enumvalue) "+")
+-                        (variable "*")
+-                        (cl:t ""))))
+-          (cl:intern
+-           (cl:concatenate
+-            'cl:string
+-            fix
+-            (cl:nreverse (helper (cl:concatenate 'cl:list name) cl:nil cl:nil))
+-            fix)
+-           package))))))
+-
+-;;;SWIG wrapper code ends here
++(define-foreign-library libgtk4
++  (t (:default "libgtk-4")))
+ 
++(unless (foreign-library-loaded-p 'libgtk4)
++  (use-foreign-library libgtk4))
+ 
+ (cffi:defcenum #.(swig-lispify "GUserDirectory" 'enumname)
+ 	#.(swig-lispify "G_USER_DIRECTORY_DESKTOP" 'enumvalue :keyword)
+@@ -441,10 +405,11 @@
+ (cffi:defcenum #.(swig-lispify "GTraverseFlags" 'enumname)
+ 	(#.(swig-lispify "G_TRAVERSE_LEAVES" 'enumvalue :keyword) #.(cl:ash 1 0))
+ 	(#.(swig-lispify "G_TRAVERSE_NON_LEAVES" 'enumvalue :keyword) #.(cl:ash 1 1))
+-	(#.(swig-lispify "G_TRAVERSE_ALL" 'enumvalue :keyword) #.(cl:logior G_TRAVERSE_LEAVES G_TRAVERSE_NON_LEAVES))
++  ;;(#.(swig-lispify "G_TRAVERSE_ALL" 'enumvalue :keyword) #.(cl:logior G_TRAVERSE_LEAVES G_TRAVERSE_NON_LEAVES))
+ 	(#.(swig-lispify "G_TRAVERSE_MASK" 'enumvalue :keyword) #.#x03)
+-	(#.(swig-lispify "G_TRAVERSE_LEAFS" 'enumvalue :keyword) #.G_TRAVERSE_LEAVES)
+-	(#.(swig-lispify "G_TRAVERSE_NON_LEAFS" 'enumvalue :keyword) #.G_TRAVERSE_NON_LEAVES))
++  ;;(#.(swig-lispify "G_TRAVERSE_LEAFS" 'enumvalue :keyword) #.G_TRAVERSE_LEAVES)
++  ;;(#.(swig-lispify "G_TRAVERSE_NON_LEAFS" 'enumvalue :keyword) #.G_TRAVERSE_NON_LEAVES)
++)
+ 
+ (cl:export '#.(swig-lispify "GTraverseFlags" 'enumname))
+ 
+@@ -551,7 +516,7 @@
+ 	#.(swig-lispify "G_UNICODE_BREAK_HANGUL_LV_SYLLABLE" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_UNICODE_BREAK_HANGUL_LVT_SYLLABLE" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_UNICODE_BREAK_CLOSE_PARANTHESIS" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_UNICODE_BREAK_CLOSE_PARENTHESIS" 'enumvalue :keyword) #.G_UNICODE_BREAK_CLOSE_PARANTHESIS)
++  ;;(#.(swig-lispify "G_UNICODE_BREAK_CLOSE_PARENTHESIS" 'enumvalue :keyword) #.G_UNICODE_BREAK_CLOSE_PARANTHESIS)
+ 	#.(swig-lispify "G_UNICODE_BREAK_CONDITIONAL_JAPANESE_STARTER" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_UNICODE_BREAK_HEBREW_LETTER" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_UNICODE_BREAK_REGIONAL_INDICATOR" 'enumvalue :keyword)
+@@ -731,13 +696,14 @@
+ 
+ (cffi:defcenum #.(swig-lispify "GNormalizeMode" 'enumname)
+ 	#.(swig-lispify "G_NORMALIZE_DEFAULT" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_NORMALIZE_NFD" 'enumvalue :keyword) #.G_NORMALIZE_DEFAULT)
++  ;;(#.(swig-lispify "G_NORMALIZE_NFD" 'enumvalue :keyword) #.G_NORMALIZE_DEFAULT)
+ 	#.(swig-lispify "G_NORMALIZE_DEFAULT_COMPOSE" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_NORMALIZE_NFC" 'enumvalue :keyword) #.G_NORMALIZE_DEFAULT_COMPOSE)
++  ;;(#.(swig-lispify "G_NORMALIZE_NFC" 'enumvalue :keyword) #.G_NORMALIZE_DEFAULT_COMPOSE)
+ 	#.(swig-lispify "G_NORMALIZE_ALL" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_NORMALIZE_NFKD" 'enumvalue :keyword) #.G_NORMALIZE_ALL)
++  ;;(#.(swig-lispify "G_NORMALIZE_NFKD" 'enumvalue :keyword) #.G_NORMALIZE_ALL)
+ 	#.(swig-lispify "G_NORMALIZE_ALL_COMPOSE" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_NORMALIZE_NFKC" 'enumvalue :keyword) #.G_NORMALIZE_ALL_COMPOSE))
++  ;;(#.(swig-lispify "G_NORMALIZE_NFKC" 'enumvalue :keyword) #.G_NORMALIZE_ALL_COMPOSE)
++  )
+ 
+ (cl:export '#.(swig-lispify "GNormalizeMode" 'enumname))
+ 
+@@ -785,8 +751,9 @@
+ 	(#.(swig-lispify "G_IO_FLAG_IS_WRITEABLE" 'enumvalue :keyword) #.(cl:ash 1 3))
+ 	(#.(swig-lispify "G_IO_FLAG_IS_SEEKABLE" 'enumvalue :keyword) #.(cl:ash 1 4))
+ 	(#.(swig-lispify "G_IO_FLAG_MASK" 'enumvalue :keyword) #.(cl:- (cl:ash 1 5) 1))
+-	(#.(swig-lispify "G_IO_FLAG_GET_MASK" 'enumvalue :keyword) #.G_IO_FLAG_MASK)
+-	(#.(swig-lispify "G_IO_FLAG_SET_MASK" 'enumvalue :keyword) #.(cl:logior G_IO_FLAG_APPEND G_IO_FLAG_NONBLOCK)))
++  ;;(#.(swig-lispify "G_IO_FLAG_GET_MASK" 'enumvalue :keyword) #.G_IO_FLAG_MASK)
++  ;;(#.(swig-lispify "G_IO_FLAG_SET_MASK" 'enumvalue :keyword) #.(cl:logior G_IO_FLAG_APPEND G_IO_FLAG_NONBLOCK))
++  )
+ 
+ (cl:export '#.(swig-lispify "GIOFlags" 'enumname))
+ 
+@@ -836,7 +803,7 @@
+ 
+ (cl:export '#.(swig-lispify "GMarkupCollectType" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "GVariantClass" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "GVariantClass" 'enumname)
+ 	(#.(swig-lispify "G_VARIANT_CLASS_BOOLEAN" 'enumvalue :keyword) #.#\b)
+ 	(#.(swig-lispify "G_VARIANT_CLASS_BYTE" 'enumvalue :keyword) #.#\y)
+ 	(#.(swig-lispify "G_VARIANT_CLASS_INT16" 'enumvalue :keyword) #.#\n)
+@@ -856,7 +823,7 @@
+ 	(#.(swig-lispify "G_VARIANT_CLASS_TUPLE" 'enumvalue :keyword) #.#\()
+ 	(#.(swig-lispify "G_VARIANT_CLASS_DICT_ENTRY" 'enumvalue :keyword) #.#\{))
+ 
+-(cl:export '#.(swig-lispify "GVariantClass" 'enumname))
++;;(cl:export '#.(swig-lispify "GVariantClass" 'enumname))
+ 
+ (cffi:defcenum #.(swig-lispify "GVariantParseError" 'enumname)
+ 	#.(swig-lispify "G_VARIANT_PARSE_ERROR_FAILED" 'enumvalue :keyword)
+@@ -890,7 +857,8 @@
+ 	(#.(swig-lispify "G_LOG_LEVEL_MESSAGE" 'enumvalue :keyword) #.(cl:ash 1 5))
+ 	(#.(swig-lispify "G_LOG_LEVEL_INFO" 'enumvalue :keyword) #.(cl:ash 1 6))
+ 	(#.(swig-lispify "G_LOG_LEVEL_DEBUG" 'enumvalue :keyword) #.(cl:ash 1 7))
+-	(#.(swig-lispify "G_LOG_LEVEL_MASK" 'enumvalue :keyword) #.(cl:logior ~(G_LOG_FLAG_RECURSION G_LOG_FLAG_FATAL))))
++	;;(#.(swig-lispify "G_LOG_LEVEL_MASK" 'enumvalue :keyword) #.(cl:logior ~(G_LOG_FLAG_RECURSION G_LOG_FLAG_FATAL)))
++  )
+ 
+ (cl:export '#.(swig-lispify "GLogLevelFlags" 'enumname))
+ 
+@@ -1008,8 +976,8 @@
+ 	(#.(swig-lispify "G_REGEX_DUPNAMES" 'enumvalue :keyword) #.(cl:ash 1 19))
+ 	(#.(swig-lispify "G_REGEX_NEWLINE_CR" 'enumvalue :keyword) #.(cl:ash 1 20))
+ 	(#.(swig-lispify "G_REGEX_NEWLINE_LF" 'enumvalue :keyword) #.(cl:ash 1 21))
+-	(#.(swig-lispify "G_REGEX_NEWLINE_CRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_NEWLINE_CR G_REGEX_NEWLINE_LF))
+-	(#.(swig-lispify "G_REGEX_NEWLINE_ANYCRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_NEWLINE_CR (cl:ash 1 22)))
++	;;(#.(swig-lispify "G_REGEX_NEWLINE_CRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_NEWLINE_CR G_REGEX_NEWLINE_LF))
++	;;(#.(swig-lispify "G_REGEX_NEWLINE_ANYCRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_NEWLINE_CR (cl:ash 1 22)))
+ 	(#.(swig-lispify "G_REGEX_BSR_ANYCRLF" 'enumvalue :keyword) #.(cl:ash 1 23))
+ 	(#.(swig-lispify "G_REGEX_JAVASCRIPT_COMPAT" 'enumvalue :keyword) #.(cl:ash 1 25)))
+ 
+@@ -1023,12 +991,12 @@
+ 	(#.(swig-lispify "G_REGEX_MATCH_PARTIAL" 'enumvalue :keyword) #.(cl:ash 1 15))
+ 	(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_CR" 'enumvalue :keyword) #.(cl:ash 1 20))
+ 	(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_LF" 'enumvalue :keyword) #.(cl:ash 1 21))
+-	(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_CRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_MATCH_NEWLINE_CR G_REGEX_MATCH_NEWLINE_LF))
++	;;(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_CRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_MATCH_NEWLINE_CR G_REGEX_MATCH_NEWLINE_LF))
+ 	(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_ANY" 'enumvalue :keyword) #.(cl:ash 1 22))
+-	(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_ANYCRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_MATCH_NEWLINE_CR G_REGEX_MATCH_NEWLINE_ANY))
++	;;(#.(swig-lispify "G_REGEX_MATCH_NEWLINE_ANYCRLF" 'enumvalue :keyword) #.(cl:logior G_REGEX_MATCH_NEWLINE_CR G_REGEX_MATCH_NEWLINE_ANY))
+ 	(#.(swig-lispify "G_REGEX_MATCH_BSR_ANYCRLF" 'enumvalue :keyword) #.(cl:ash 1 23))
+ 	(#.(swig-lispify "G_REGEX_MATCH_BSR_ANY" 'enumvalue :keyword) #.(cl:ash 1 24))
+-	(#.(swig-lispify "G_REGEX_MATCH_PARTIAL_SOFT" 'enumvalue :keyword) #.G_REGEX_MATCH_PARTIAL)
++	;;(#.(swig-lispify "G_REGEX_MATCH_PARTIAL_SOFT" 'enumvalue :keyword) #.G_REGEX_MATCH_PARTIAL)
+ 	(#.(swig-lispify "G_REGEX_MATCH_PARTIAL_HARD" 'enumvalue :keyword) #.(cl:ash 1 27))
+ 	(#.(swig-lispify "G_REGEX_MATCH_NOTEMPTY_ATSTART" 'enumvalue :keyword) #.(cl:ash 1 28)))
+ 
+@@ -1046,7 +1014,7 @@
+ 
+ (cl:export '#.(swig-lispify "GErrorType" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "GTokenType" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "GTokenType" 'enumname)
+ 	(#.(swig-lispify "G_TOKEN_EOF" 'enumvalue :keyword) #.0)
+ 	(#.(swig-lispify "G_TOKEN_LEFT_PAREN" 'enumvalue :keyword) #.#\()
+ 	(#.(swig-lispify "G_TOKEN_RIGHT_PAREN" 'enumvalue :keyword) #.#\))
+@@ -1072,7 +1040,7 @@
+ 	#.(swig-lispify "G_TOKEN_COMMENT_MULTI" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_TOKEN_LAST" 'enumvalue :keyword))
+ 
+-(cl:export '#.(swig-lispify "GTokenType" 'enumname))
++;;(cl:export '#.(swig-lispify "GTokenType" 'enumname))
+ 
+ (cffi:defcenum #.(swig-lispify "GShellError" 'enumname)
+ 	#.(swig-lispify "G_SHELL_ERROR_BAD_QUOTING" 'enumvalue :keyword)
+@@ -1098,7 +1066,7 @@
+ 	#.(swig-lispify "G_SPAWN_ERROR_ACCES" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_SPAWN_ERROR_PERM" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_SPAWN_ERROR_TOO_BIG" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_SPAWN_ERROR_2BIG" 'enumvalue :keyword) #.G_SPAWN_ERROR_TOO_BIG)
++	;;(#.(swig-lispify "G_SPAWN_ERROR_2BIG" 'enumvalue :keyword) #.G_SPAWN_ERROR_TOO_BIG)
+ 	#.(swig-lispify "G_SPAWN_ERROR_NOEXEC" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_SPAWN_ERROR_NAMETOOLONG" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_SPAWN_ERROR_NOENT" 'enumvalue :keyword)
+@@ -1262,10 +1230,11 @@
+ 	#.(swig-lispify "PTHREAD_MUTEX_RECURSIVE_NP" 'enumvalue)
+ 	#.(swig-lispify "PTHREAD_MUTEX_ERRORCHECK_NP" 'enumvalue)
+ 	#.(swig-lispify "PTHREAD_MUTEX_ADAPTIVE_NP" 'enumvalue)
+-	(#.(swig-lispify "PTHREAD_MUTEX_NORMAL" 'enumvalue) #.PTHREAD_MUTEX_TIMED_NP)
+-	(#.(swig-lispify "PTHREAD_MUTEX_RECURSIVE" 'enumvalue) #.PTHREAD_MUTEX_RECURSIVE_NP)
+-	(#.(swig-lispify "PTHREAD_MUTEX_ERRORCHECK" 'enumvalue) #.PTHREAD_MUTEX_ERRORCHECK_NP)
+-	(#.(swig-lispify "PTHREAD_MUTEX_DEFAULT" 'enumvalue) #.PTHREAD_MUTEX_NORMAL))
++	;;(#.(swig-lispify "PTHREAD_MUTEX_NORMAL" 'enumvalue) #.PTHREAD_MUTEX_TIMED_NP)
++	;;(#.(swig-lispify "PTHREAD_MUTEX_RECURSIVE" 'enumvalue) #.PTHREAD_MUTEX_RECURSIVE_NP)
++	;;(#.(swig-lispify "PTHREAD_MUTEX_ERRORCHECK" 'enumvalue) #.PTHREAD_MUTEX_ERRORCHECK_NP)
++	;;(#.(swig-lispify "PTHREAD_MUTEX_DEFAULT" 'enumvalue) #.PTHREAD_MUTEX_NORMAL)
++  )
+ 
+ (cl:export '#.(swig-lispify "PTHREAD_MUTEX_TIMED_NP" 'enumvalue))
+ 
+@@ -1285,9 +1254,10 @@
+ 
+ (defanonenum 
+ 	#.(swig-lispify "PTHREAD_MUTEX_STALLED" 'enumvalue)
+-	(#.(swig-lispify "PTHREAD_MUTEX_STALLED_NP" 'enumvalue) #.PTHREAD_MUTEX_STALLED)
++	;;(#.(swig-lispify "PTHREAD_MUTEX_STALLED_NP" 'enumvalue) #.PTHREAD_MUTEX_STALLED)
+ 	#.(swig-lispify "PTHREAD_MUTEX_ROBUST" 'enumvalue)
+-	(#.(swig-lispify "PTHREAD_MUTEX_ROBUST_NP" 'enumvalue) #.PTHREAD_MUTEX_ROBUST))
++	;;(#.(swig-lispify "PTHREAD_MUTEX_ROBUST_NP" 'enumvalue) #.PTHREAD_MUTEX_ROBUST)
++  )
+ 
+ (cl:export '#.(swig-lispify "PTHREAD_MUTEX_STALLED" 'enumvalue))
+ 
+@@ -1312,7 +1282,8 @@
+ 	#.(swig-lispify "PTHREAD_RWLOCK_PREFER_READER_NP" 'enumvalue)
+ 	#.(swig-lispify "PTHREAD_RWLOCK_PREFER_WRITER_NP" 'enumvalue)
+ 	#.(swig-lispify "PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP" 'enumvalue)
+-	(#.(swig-lispify "PTHREAD_RWLOCK_DEFAULT_NP" 'enumvalue) #.PTHREAD_RWLOCK_PREFER_READER_NP))
++	;;(#.(swig-lispify "PTHREAD_RWLOCK_DEFAULT_NP" 'enumvalue) #.PTHREAD_RWLOCK_PREFER_READER_NP)
++  )
+ 
+ (cl:export '#.(swig-lispify "PTHREAD_RWLOCK_PREFER_READER_NP" 'enumvalue))
+ 
+@@ -1389,16 +1360,17 @@
+ (cffi:defcenum #.(swig-lispify "GParamFlags" 'enumname)
+ 	(#.(swig-lispify "G_PARAM_READABLE" 'enumvalue :keyword) #.(cl:ash 1 0))
+ 	(#.(swig-lispify "G_PARAM_WRITABLE" 'enumvalue :keyword) #.(cl:ash 1 1))
+-	(#.(swig-lispify "G_PARAM_READWRITE" 'enumvalue :keyword) #.(cl:logior G_PARAM_READABLE G_PARAM_WRITABLE))
++	;;(#.(swig-lispify "G_PARAM_READWRITE" 'enumvalue :keyword) #.(cl:logior G_PARAM_READABLE G_PARAM_WRITABLE))
+ 	(#.(swig-lispify "G_PARAM_CONSTRUCT" 'enumvalue :keyword) #.(cl:ash 1 2))
+ 	(#.(swig-lispify "G_PARAM_CONSTRUCT_ONLY" 'enumvalue :keyword) #.(cl:ash 1 3))
+ 	(#.(swig-lispify "G_PARAM_LAX_VALIDATION" 'enumvalue :keyword) #.(cl:ash 1 4))
+ 	(#.(swig-lispify "G_PARAM_STATIC_NAME" 'enumvalue :keyword) #.(cl:ash 1 5))
+-	(#.(swig-lispify "G_PARAM_PRIVATE" 'enumvalue :keyword) #.G_PARAM_STATIC_NAME)
++	;;(#.(swig-lispify "G_PARAM_PRIVATE" 'enumvalue :keyword) #.G_PARAM_STATIC_NAME)
+ 	(#.(swig-lispify "G_PARAM_STATIC_NICK" 'enumvalue :keyword) #.(cl:ash 1 6))
+ 	(#.(swig-lispify "G_PARAM_STATIC_BLURB" 'enumvalue :keyword) #.(cl:ash 1 7))
+ 	(#.(swig-lispify "G_PARAM_EXPLICIT_NOTIFY" 'enumvalue :keyword) #.(cl:ash 1 30))
+-	(#.(swig-lispify "G_PARAM_DEPRECATED" 'enumvalue :keyword) #.gint) (1u << 31))
++	;;(#.(swig-lispify "G_PARAM_DEPRECATED" 'enumvalue :keyword) #.gint) (1u << 31)
++  )
+ 
+ (cl:export '#.(swig-lispify "GParamFlags" 'enumname))
+ 
+@@ -1651,7 +1623,7 @@
+ 	#.(swig-lispify "G_IO_ERROR_PROXY_NEED_AUTH" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_IO_ERROR_PROXY_NOT_ALLOWED" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_IO_ERROR_BROKEN_PIPE" 'enumvalue :keyword)
+-	(#.(swig-lispify "G_IO_ERROR_CONNECTION_CLOSED" 'enumvalue :keyword) #.G_IO_ERROR_BROKEN_PIPE)
++  ;;(#.(swig-lispify "G_IO_ERROR_CONNECTION_CLOSED" 'enumvalue :keyword) #.G_IO_ERROR_BROKEN_PIPE)
+ 	#.(swig-lispify "G_IO_ERROR_NOT_CONNECTED" 'enumvalue :keyword)
+ 	#.(swig-lispify "G_IO_ERROR_MESSAGE_TOO_LARGE" 'enumvalue :keyword))
+ 
+@@ -1970,11 +1942,11 @@
+ 
+ (cl:export '#.(swig-lispify "GCredentialsType" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "GDBusMessageByteOrder" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "GDBusMessageByteOrder" 'enumname)
+ 	(#.(swig-lispify "G_DBUS_MESSAGE_BYTE_ORDER_BIG_ENDIAN" 'enumvalue :keyword) #.#\B)
+ 	(#.(swig-lispify "G_DBUS_MESSAGE_BYTE_ORDER_LITTLE_ENDIAN" 'enumvalue :keyword) #.#\l))
+ 
+-(cl:export '#.(swig-lispify "GDBusMessageByteOrder" 'enumname))
++;;(cl:export '#.(swig-lispify "GDBusMessageByteOrder" 'enumname))
+ 
+ (cffi:defcenum #.(swig-lispify "GApplicationFlags" 'enumname)
+ 	#.(swig-lispify "G_APPLICATION_FLAGS_NONE" 'enumvalue :keyword)
+@@ -2167,7 +2139,8 @@
+ (cffi:defcenum #.(swig-lispify "GPollableReturn" 'enumname)
+ 	(#.(swig-lispify "G_POLLABLE_RETURN_FAILED" 'enumvalue :keyword) #.0)
+ 	(#.(swig-lispify "G_POLLABLE_RETURN_OK" 'enumvalue :keyword) #.1)
+-	(#.(swig-lispify "G_POLLABLE_RETURN_WOULD_BLOCK" 'enumvalue :keyword) #.-G_IO_ERROR_WOD_BOCK))
++	;;(#.(swig-lispify "G_POLLABLE_RETURN_WOULD_BLOCK" 'enumvalue :keyword) #.-G_IO_ERROR_WOD_BOCK)
++  )
+ 
+ (cl:export '#.(swig-lispify "GPollableReturn" 'enumname))
+ 
+@@ -2305,7 +2278,7 @@
+ 	#.(swig-lispify "_SC_POLL" 'enumvalue)
+ 	#.(swig-lispify "_SC_SELECT" 'enumvalue)
+ 	#.(swig-lispify "_SC_UIO_MAXIOV" 'enumvalue)
+-	(#.(swig-lispify "_SC_IOV_MAX" 'enumvalue) #._SC_UIO_MAXIOV)
++  ;;(#.(swig-lispify "_SC_IOV_MAX" 'enumvalue) #._SC_UIO_MAXIOV)
+ 	#.(swig-lispify "_SC_PII_INTERNET_STREAM" 'enumvalue)
+ 	#.(swig-lispify "_SC_PII_INTERNET_DGRAM" 'enumvalue)
+ 	#.(swig-lispify "_SC_PII_OSI_COTS" 'enumvalue)
+@@ -2445,7 +2418,7 @@
+ 	#.(swig-lispify "_SC_LEVEL4_CACHE_SIZE" 'enumvalue)
+ 	#.(swig-lispify "_SC_LEVEL4_CACHE_ASSOC" 'enumvalue)
+ 	#.(swig-lispify "_SC_LEVEL4_CACHE_LINESIZE" 'enumvalue)
+-	(#.(swig-lispify "_SC_IPV6" 'enumvalue) #.(cl:+ _SC_LEVEL1_ICACHE_SIZE 50))
++	;;(#.(swig-lispify "_SC_IPV6" 'enumvalue) #.(cl:+ _SC_LEVEL1_ICACHE_SIZE 50))
+ 	#.(swig-lispify "_SC_RAW_SOCKETS" 'enumvalue)
+ 	#.(swig-lispify "_SC_V7_ILP32_OFF32" 'enumvalue)
+ 	#.(swig-lispify "_SC_V7_ILP32_OFFBIG" 'enumvalue)
+@@ -3402,7 +3375,7 @@
+ 
+ (cl:export '#.(swig-lispify "hb_direction_t" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "hb_script_t" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "hb_script_t" 'enumname)
+ 	(#.(swig-lispify "HB_SCRIPT_COMMON" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (Z) #xFF) << 24) (cl:logand (uint32_t) (y #xFF) << 16) (cl:logand (uint32_t) (y #xFF) << 8) (cl:logand uint32_t) (y #xFF))))
+ 	(#.(swig-lispify "HB_SCRIPT_INHERITED" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (Z) #xFF) << 24) (cl:logand (uint32_t) (i #xFF) << 16) (cl:logand (uint32_t) (n #xFF) << 8) (cl:logand uint32_t) (h #xFF))))
+ 	(#.(swig-lispify "HB_SCRIPT_UNKNOWN" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (Z) #xFF) << 24) (cl:logand (uint32_t) (z #xFF) << 16) (cl:logand (uint32_t) (z #xFF) << 8) (cl:logand uint32_t) (z #xFF))))
+@@ -3564,7 +3537,7 @@
+ 	(#.(swig-lispify "_HB_SCRIPT_MAX_VALUE" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (0x7f) #xFF) << 24) (cl:logand (uint32_t) (0xff #xFF) << 16) (cl:logand (uint32_t) (0xff #xFF) << 8) (cl:logand uint32_t) (0xff #xFF))))
+ 	(#.(swig-lispify "_HB_SCRIPT_MAX_VALUE_SIGNED" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (0x7f) #xFF) << 24) (cl:logand (uint32_t) (0xff #xFF) << 16) (cl:logand (uint32_t) (0xff #xFF) << 8) (cl:logand uint32_t) (0xff #xFF)))))
+ 
+-(cl:export '#.(swig-lispify "hb_script_t" 'enumname))
++;;(cl:export '#.(swig-lispify "hb_script_t" 'enumname))
+ 
+ (cffi:defcenum #.(swig-lispify "hb_memory_mode_t" 'enumname)
+ 	#.(swig-lispify "HB_MEMORY_MODE_DUPLICATE" 'enumvalue :keyword)
+@@ -3696,7 +3669,8 @@
+ 	(#.(swig-lispify "HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES" 'enumvalue :keyword) #.0)
+ 	(#.(swig-lispify "HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS" 'enumvalue :keyword) #.1)
+ 	(#.(swig-lispify "HB_BUFFER_CLUSTER_LEVEL_CHARACTERS" 'enumvalue :keyword) #.2)
+-	(#.(swig-lispify "HB_BUFFER_CLUSTER_LEVEL_DEFAULT" 'enumvalue :keyword) #.HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES))
++	;;(#.(swig-lispify "HB_BUFFER_CLUSTER_LEVEL_DEFAULT" 'enumvalue :keyword) #.HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
++  )
+ 
+ (cl:export '#.(swig-lispify "hb_buffer_cluster_level_t" 'enumname))
+ 
+@@ -3711,7 +3685,7 @@
+ 
+ (cl:export '#.(swig-lispify "hb_buffer_serialize_flags_t" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "hb_buffer_serialize_format_t" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "hb_buffer_serialize_format_t" 'enumname)
+ 	(#.(swig-lispify "HB_BUFFER_SERIALIZE_FORMAT_TEXT" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (T) #xFF) << 24) (cl:logand (uint32_t) (E #xFF) << 16) (cl:logand (uint32_t) (X #xFF) << 8) (cl:logand uint32_t) (T #xFF))))
+ 	(#.(swig-lispify "HB_BUFFER_SERIALIZE_FORMAT_JSON" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (J) #xFF) << 24) (cl:logand (uint32_t) (S #xFF) << 16) (cl:logand (uint32_t) (O #xFF) << 8) (cl:logand uint32_t) (N #xFF))))
+ 	(#.(swig-lispify "HB_BUFFER_SERIALIZE_FORMAT_INVALID" 'enumvalue :keyword) #.(cl:logior (cl:logand hb_tag_t) ((((uint32_t) (0) #xFF) << 24) (cl:logand (uint32_t) (0 #xFF) << 16) (cl:logand (uint32_t) (0 #xFF) << 8) (cl:logand uint32_t) (0 #xFF)))))
+@@ -4238,7 +4212,7 @@
+ 
+ (cl:export '#.(swig-lispify "GdkAxisUse" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "GdkAxisFlags" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "GdkAxisFlags" 'enumname)
+ 	(#.(swig-lispify "GDK_AXIS_FLAG_X" 'enumvalue :keyword) #.1 << GDK_AXIS_X)
+ 	(#.(swig-lispify "GDK_AXIS_FLAG_Y" 'enumvalue :keyword) #.1 << GDK_AXIS_Y)
+ 	(#.(swig-lispify "GDK_AXIS_FLAG_DELTA_X" 'enumvalue :keyword) #.1 << GDK_AXIS_DETA_X)
+@@ -4251,7 +4225,7 @@
+ 	(#.(swig-lispify "GDK_AXIS_FLAG_ROTATION" 'enumvalue :keyword) #.1 << GDK_AXIS_ROTATION)
+ 	(#.(swig-lispify "GDK_AXIS_FLAG_SLIDER" 'enumvalue :keyword) #.1 << GDK_AXIS_SIDER))
+ 
+-(cl:export '#.(swig-lispify "GdkAxisFlags" 'enumname))
++;;(cl:export '#.(swig-lispify "GdkAxisFlags" 'enumname))
+ 
+ (cffi:defcenum #.(swig-lispify "GdkDragAction" 'enumname)
+ 	(#.(swig-lispify "GDK_ACTION_COPY" 'enumvalue :keyword) #.(cl:ash 1 0))
+@@ -4424,7 +4398,7 @@
+ 
+ (cl:export '#.(swig-lispify "GdkSubpixelLayout" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "GdkAnchorHints" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "GdkAnchorHints" 'enumname)
+ 	(#.(swig-lispify "GDK_ANCHOR_FLIP_X" 'enumvalue :keyword) #.(cl:ash 1 0))
+ 	(#.(swig-lispify "GDK_ANCHOR_FLIP_Y" 'enumvalue :keyword) #.(cl:ash 1 1))
+ 	(#.(swig-lispify "GDK_ANCHOR_SLIDE_X" 'enumvalue :keyword) #.(cl:ash 1 2))
+@@ -4435,9 +4409,9 @@
+ 	(#.(swig-lispify "GDK_ANCHOR_SLIDE" 'enumvalue :keyword) #.(cl:logior GDK_ANCHOR_SLIDE_X GDK_ANCHOR_SLIDE_Y))
+ 	(#.(swig-lispify "GDK_ANCHOR_RESIZE" 'enumvalue :keyword) #.(cl:logior GDK_ANCHOR_RESIZE_X GDK_ANCHOR_RESIZE_Y)))
+ 
+-(cl:export '#.(swig-lispify "GdkAnchorHints" 'enumname))
++;;(cl:export '#.(swig-lispify "GdkAnchorHints" 'enumname))
+ 
+-(cffi:defcenum #.(swig-lispify "GdkSeatCapabilities" 'enumname)
++#+nil(cffi:defcenum #.(swig-lispify "GdkSeatCapabilities" 'enumname)
+ 	(#.(swig-lispify "GDK_SEAT_CAPABILITY_NONE" 'enumvalue :keyword) #.0)
+ 	(#.(swig-lispify "GDK_SEAT_CAPABILITY_POINTER" 'enumvalue :keyword) #.(cl:ash 1 0))
+ 	(#.(swig-lispify "GDK_SEAT_CAPABILITY_TOUCH" 'enumvalue :keyword) #.(cl:ash 1 1))

@@ -1,0 +1,127 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  (asdf:load-asd (truename "../../gtk4.asd"))
+  #+quicklisp(ql:quickload '(:gtk4 :gtk4/swig/cairo :gtk4/swig/gtkwidget) :silent t)
+  )
+
+(defpackage :ros.script.rotated.3863942106
+  (:use :cl :gtk4))
+(in-package :ros.script.rotated.3863942106)
+
+(defparameter *text* "I ♥ ほげ")
+(defparameter *font* "Serif 18")
+(defparameter *radius* 150)
+
+(defun fancy-shape-renderer (cr attr do_path data)
+  (declare (ignorable cr attr do_path data))
+  )
+
+(cffi:defcallback fancy-shape-renderer% :void
+    ((cr :pointer)
+     (attr :pointer)
+     (do_path :int)
+     (data :int))
+  (funcall 'fancy-shape-renderer cr attr do_path data))
+
+(defun create-fancy-attr-list-for-layout (layout)
+  (let (attrs metrics ascent)
+    (setf metrics
+          (let ((context (gir:invoke (layout "get_context"))))
+            (print context)
+            (terpri)
+            #+nil(gir:invoke (context "get_metrics")
+                        (gir:invoke (layout "get_font_description"))
+                        (cffi:null-pointer))))
+    ;;(print metrics)
+    ))
+
+(defun rotated-text-draw (#|GtkDrawingArea|# da #|cairo_t|# cr width height user-data)
+  (print (list da cr width height user-data))
+  (force-output)
+  (let ((RADIUS 150)
+        #|/* Create a cairo context and set up a transformation matrix so that the user
+        | space coordinates for the centered square where we draw are [-RADIUS, RADIUS],
+        | [-RADIUS, RADIUS].
+        | We first center, then change the scale. |#
+        (device-radius (/ (min width height) 2))
+        pattern context layout desc attrs)
+    (gtk4/cairo:cairo-translate cr
+                                (coerce (+ device-radius (ash (floor (- width  (* 2 device-radius))) -1)) 'double-float)
+                                (coerce (+ device-radius (ash (floor (- height (* 2 device-radius))) -1)) 'double-float))
+    (gtk4/cairo:cairo-scale cr (coerce (floor device-radius radius) 'double-float) (coerce  (floor device-radius radius) 'double-float))
+    #| Create and a subtle gradient source and use it.|#
+    (setf pattern (gtk4/cairo:cairo-pattern-create-linear (coerce (- radius) 'double-float) (coerce (- radius) 'double-float)
+                                                          (coerce radius 'double-float) (coerce  radius 'double-float)))
+    (gtk4/cairo:cairo-pattern-add-color-stop-rgb pattern  0.0d0  0.5d0 0.0d0 0.0d0)
+    (gtk4/cairo:cairo-pattern-add-color-stop-rgb pattern  1.0d0  0.0d0 0.0d0 0.5d0)
+    (gtk4/cairo:cairo-set-source cr pattern)
+    #| Create a PangoContext and set up our shape renderer |#
+    (setf context (gtk4/gtkwidget:gtk-widget-create-pango-context da))
+    (gir:invoke (*pangocairo* "context_set_shape_renderer")
+                context
+                (cffi:callback fancy-shape-renderer%)
+                (cffi:null-pointer)
+                (cffi:null-pointer))
+    #| Create a PangoLayout, set the text, font, and attributes |#
+    (setf layout (gir:invoke (*pango* "Layout" :new) context))
+    (print (list :layout layout))
+    (gir:invoke (layout "set_text") *text* -1)
+    (setf desc (gir:invoke (*pango* "font_description_from_string") *font*))
+    (print (list :desc desc))
+    (gir:invoke (layout "set_font_description") desc)
+    (setf attrs (create-fancy-attr-list-for-layout layout))
+    ))
+
+(cffi:defcallback rotated-text-draw% :void
+    ((drawing-area :pointer) 
+     (cairo :pointer)
+     (width :int)
+     (height :int)
+     (user-data :pointer))
+  (funcall 'rotated-text-draw drawing-area cairo width height user-data))
+
+(let ((window))
+  (defun do-rotated-text (app)
+    (unless window
+      (setf window (gir:invoke (*gtk* "ApplicationWindow" :new) app))
+      (setf (gir:property window :title) "Rotated Text")
+      (gir:invoke (window :set-default-size)
+                  (* 4 *radius*)
+                  (* 2 *radius*))
+      ;;(gir:invoke (window :add-weak-pointer) window)
+      (let ((box (gir:invoke (*gtk* "Box" :new) (gir:nget *gtk* "Orientation" :horizontal) 0))
+            (drawing-area))
+        (gir:invoke (box :set_homogeneous) t)
+        (gir:invoke (window :set-child) box)
+        ;; Add a drawing area 
+        (setf drawing-area (gir:invoke (*gtk* "DrawingArea" :new)))
+        (gir:invoke (box "append") drawing-area)
+        (gir:invoke (drawing-area "add_css_class") "view")
+        (gir:invoke (drawing-area "set_draw_func")
+                    (cffi:callback rotated-text-draw%)
+                    (cffi:null-pointer)
+                    (cffi:null-pointer))))
+    window))
+
+(defun activate (app)
+  (let ((window (do-rotated-text app)))
+    (gir:invoke (window :present))))
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (gtk4:setup-namespace)
+  (gtk4:init)
+  (gir:invoke (*gtk* :init))
+  (let ((app (gir:invoke (*gtk* "Application" :new)
+                         "org.gtk.example"
+                         (gir:nget *gio* "ApplicationFlags" :flags-none))))
+    (gir:connect app :activate #'activate)
+    (let ((status (gir:invoke (app :run) (cons (namestring *load-truename*) argv))))
+      status)))
+
+;;; vim: set ft=lisp lisp:
