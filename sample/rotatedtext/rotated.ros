@@ -6,7 +6,12 @@ exec ros -Q -- $0 "$@"
 (progn ;;init forms
   (ros:ensure-asdf)
   (asdf:load-asd (truename "../../gtk4.asd"))
-  #+quicklisp(ql:quickload '(:gtk4 :gtk4/swig/cairo :gtk4/swig/gtkwidget) :silent t)
+  #+quicklisp(ql:quickload '(:gtk4
+                             :gtk4/swig/cairo
+                             :gtk4/swig/gtkwidget
+                             :gtk4/swig/pango_layout
+                             :gtk4/swig/pango_types
+                             ) :silent t)
   )
 
 (defpackage :ros.script.rotated.3863942106
@@ -19,6 +24,9 @@ exec ros -Q -- $0 "$@"
 
 (defun fancy-shape-renderer (cr attr do_path data)
   (declare (ignorable cr attr do_path data))
+  (print :fancy-shape-renderer cr attr do_path data)
+  (terpri)
+  (force-output)
   )
 
 (cffi:defcallback fancy-shape-renderer% :void
@@ -28,54 +36,128 @@ exec ros -Q -- $0 "$@"
      (data :int))
   (funcall 'fancy-shape-renderer cr attr do_path data))
 
-(defun create-fancy-attr-list-for-layout (layout)
-  (let (attrs metrics ascent)
+(defun create-fancy-attr-list-for-layout (layout-ptr)
+  (print :!!!)
+  (let (attrs metrics ascent context layout ink_rect logical_rect)
     (setf metrics
-          (let ((context (gir:invoke (layout "get_context"))))
-            (print context)
+          (let ((context-ptr (gtk4/pango_layout:pango-layout-get-context layout-ptr)))
+            (print (list :context-ptr context-ptr))
+            (setf context (gir:build-object-ptr (gir:nget *pango* "Context") context-ptr))
+            (setf layout (gir:build-object-ptr (gir:nget *pango* "Layout") layout-ptr))
+            (print (list :context context))
             (terpri)
-            #+nil(gir:invoke (context "get_metrics")
+            (gir:invoke (context "get_metrics")
                         (gir:invoke (layout "get_font_description"))
                         (cffi:null-pointer))))
-    ;;(print metrics)
-    ))
+    (print (list :metrics metrics))
+    (setf ascent (gir:invoke (metrics "get_ascent")))
+    (print (list :ascent ascent))
+    (cffi:with-foreign-objects ((ink-rect 'gtk4/pango_types:-pango-rectangle)
+                                (logical-rect 'gtk4/pango_types:-pango-rectangle))
+      ;;(cffi:translate-into-foreign-memory )
+      ;;(cffi:mem-aref 
+      (cffi:foreign-slot-names '(:struct gtk4/pango_types:-pango-rectangle))
+      (let ((rect '(:struct gtk4/pango_types:-pango-rectangle))
+            (x 'gtk4/pango_types:x)
+            (y 'gtk4/pango_types:y)
+            (width 'gtk4/pango_types:width)
+            (height 'gtk4/pango_types:height))
+        (setf (cffi:foreign-slot-value logical-rect rect x) 0
+              (cffi:foreign-slot-value logical-rect rect width) ascent
+              (cffi:foreign-slot-value logical-rect rect y) (- ascent)
+              (cffi:foreign-slot-value logical-rect rect height) ascent
+              (cffi:mem-ref ink-rect rect) (cffi:mem-ref logical-rect rect))
+        (gir:invoke (metrics "unref"))
+        (let ((attrs (gir:invoke (*pango* "AttrList" :new))))
+          (print
+           (list :ink-rect
+                 (cffi:foreign-slot-value ink-rect rect x)
+                 (cffi:foreign-slot-value ink-rect rect width)
+                 (cffi:foreign-slot-value ink-rect rect y)
+                 (cffi:foreign-slot-value ink-rect rect height)
+                 :logical-rect
+                 (cffi:foreign-slot-value logical-rect rect x)
+                 (cffi:foreign-slot-value logical-rect rect width)
+                 (cffi:foreign-slot-value logical-rect rect y)
+                 (cffi:foreign-slot-value logical-rect rect height)
+                 :ink-rect ink-rect
+                 :size-of-rect
+                 (cffi:foreign-type-size rect)
+                 ))
+          attrs
+          )))))
 
-(defun rotated-text-draw (#|GtkDrawingArea|# da #|cairo_t|# cr width height user-data)
-  (print (list da cr width height user-data))
+(defun rotated-text-draw (#|GtkDrawingArea|# da-ptr #|cairo_t|# cr-ptr width height user-data)
+  (print (list :GtkDrawingArea da-ptr cr-ptr width height user-data))
   (force-output)
-  (let ((RADIUS 150)
-        #|/* Create a cairo context and set up a transformation matrix so that the user
-        | space coordinates for the centered square where we draw are [-RADIUS, RADIUS],
-        | [-RADIUS, RADIUS].
-        | We first center, then change the scale. |#
-        (device-radius (/ (min width height) 2))
-        pattern context layout desc attrs)
-    (gtk4/cairo:cairo-translate cr
-                                (coerce (+ device-radius (ash (floor (- width  (* 2 device-radius))) -1)) 'double-float)
-                                (coerce (+ device-radius (ash (floor (- height (* 2 device-radius))) -1)) 'double-float))
-    (gtk4/cairo:cairo-scale cr (coerce (floor device-radius radius) 'double-float) (coerce  (floor device-radius radius) 'double-float))
-    #| Create and a subtle gradient source and use it.|#
-    (setf pattern (gtk4/cairo:cairo-pattern-create-linear (coerce (- radius) 'double-float) (coerce (- radius) 'double-float)
-                                                          (coerce radius 'double-float) (coerce  radius 'double-float)))
-    (gtk4/cairo:cairo-pattern-add-color-stop-rgb pattern  0.0d0  0.5d0 0.0d0 0.0d0)
-    (gtk4/cairo:cairo-pattern-add-color-stop-rgb pattern  1.0d0  0.0d0 0.0d0 0.5d0)
-    (gtk4/cairo:cairo-set-source cr pattern)
-    #| Create a PangoContext and set up our shape renderer |#
-    (setf context (gtk4/gtkwidget:gtk-widget-create-pango-context da))
-    (gir:invoke (*pangocairo* "context_set_shape_renderer")
-                context
-                (cffi:callback fancy-shape-renderer%)
-                (cffi:null-pointer)
-                (cffi:null-pointer))
-    #| Create a PangoLayout, set the text, font, and attributes |#
-    (setf layout (gir:invoke (*pango* "Layout" :new) context))
-    (print (list :layout layout))
-    (gir:invoke (layout "set_text") *text* -1)
-    (setf desc (gir:invoke (*pango* "font_description_from_string") *font*))
-    (print (list :desc desc))
-    (gir:invoke (layout "set_font_description") desc)
-    (setf attrs (create-fancy-attr-list-for-layout layout))
-    ))
+  (let ((da (gir:build-object-ptr (gir:nget *gtk* "DrawingArea") da-ptr))
+        (cr (gir:build-object-ptr (gir:nget *pangocairo* "Context") cr-ptr))
+        )
+    (print (list :cr cr :cr-ptr cr-ptr))
+    (print (list :GtkDrawingArea da))
+    (force-output)
+    (let ((RADIUS 150)
+          #|/* Create a cairo context and set up a transformation matrix so that the user
+          | space coordinates for the centered square where we draw are [-RADIUS, RADIUS],
+          | [-RADIUS, RADIUS].
+          | We first center, then change the scale. |#
+          (device-radius (/ (min width height) 2))
+          pattern context-ptr layout-ptr layout desc attrs)
+      (gtk4/cairo:cairo-translate cr-ptr
+                                  (coerce (+ device-radius (ash (floor (- width  (* 2 device-radius))) -1)) 'double-float)
+                                  (coerce (+ device-radius (ash (floor (- height (* 2 device-radius))) -1)) 'double-float))
+      (gtk4/cairo:cairo-scale cr-ptr (coerce (floor device-radius radius) 'double-float) (coerce  (floor device-radius radius) 'double-float))
+      #| Create and a subtle gradient source and use it.|#
+      (setf pattern (gtk4/cairo:cairo-pattern-create-linear (coerce (- radius) 'double-float) (coerce (- radius) 'double-float)
+                                                            (coerce radius 'double-float) (coerce  radius 'double-float)))
+      (gtk4/cairo:cairo-pattern-add-color-stop-rgb pattern  0.0d0  0.5d0 0.0d0 0.0d0)
+      (gtk4/cairo:cairo-pattern-add-color-stop-rgb pattern  1.0d0  0.0d0 0.0d0 0.5d0)
+      (gtk4/cairo:cairo-set-source cr-ptr pattern)
+      #| Create a PangoContext and set up our shape renderer |#
+      ;;(gir:invoke (*pango* "PangoContext" :new))
+      
+      ;;context = gtk_widget_create_pango_context (GTK_WIDGET (da));
+      (setf context-ptr (gtk4/gtkwidget:gtk-widget-create-pango-context da-ptr))
+      ;;(setf context (gir:invoke (da "create_pango_context")))
+      ;;(setf context (gir:build-object-ptr (gir:nget *pango* "Context") context-ptr))
+      (print (list :context! context-ptr))
+      #+nil(gir:invoke (*pangocairo* "context_set_shape_renderer")
+                  context
+                  (cffi:callback fancy-shape-renderer%)
+                  (cffi:null-pointer)
+                  (cffi:null-pointer))
+      #| Create a PangoLayout, set the text, font, and attributes |#
+      (setf layout-ptr (gtk4/pango_layout:pango-layout-new context-ptr))
+      ;;(setf layout (gir:invoke (*pango* "Layout" :new) context))
+      (print (list :layout layout-ptr))
+      (setf layout (gir:build-object-ptr (gir:nget *pango* "Layout") layout-ptr))
+      ;;(print (list :context!! :got (gtk4/pango_layout:pango-layout-get-context layout-ptr) :origin context-ptr))
+      (gir:invoke (layout "set_text") *text* -1)
+      (setf desc (gir:invoke (*pango* "font_description_from_string") *font*))
+      (print (list :desc desc))
+      (gir:invoke (layout "set_font_description") desc)
+      (setf attrs (create-fancy-attr-list-for-layout layout-ptr))
+      (let ((attrs-ptr (gir::this-of attrs)))
+        (gtk4/pango_layout:pango-layout-set-attributes layout-ptr attrs-ptr))
+      (gir:invoke (attrs "unref"))
+      #| Draw the layout N_WORDS times in a circle |#
+      (let ((i 0))
+        (cffi:with-foreign-objects
+            ((layout-width :int)
+             (layout-height :int))
+          ;;(gir:invoke (cr "update_layout") layout)
+          (gtk4/pango_layout:pango-layout-get-size layout-ptr layout-width layout-height)
+          (print (list
+                  :width
+                  (cffi:mem-aref layout-width :int)
+                  :height
+                  (cffi:mem-aref layout-height :int)))
+          ;;(gtk4/cairo:cairo-rotate cr-ptr  G_PI*2 / N_WORDS)
+        ))
+      #| free the objects we created |#
+      (gir:invoke (desc "free"))
+      (gir:invoke (layout "unref"))
+      )))
 
 (cffi:defcallback rotated-text-draw% :void
     ((drawing-area :pointer) 
@@ -89,6 +171,7 @@ exec ros -Q -- $0 "$@"
   (defun do-rotated-text (app)
     (unless window
       (setf window (gir:invoke (*gtk* "ApplicationWindow" :new) app))
+      ;;(gir:invoke (*pango* "Rectangle" :new))
       (setf (gir:property window :title) "Rotated Text")
       (gir:invoke (window :set-default-size)
                   (* 4 *radius*)
@@ -100,6 +183,7 @@ exec ros -Q -- $0 "$@"
         (gir:invoke (window :set-child) box)
         ;; Add a drawing area 
         (setf drawing-area (gir:invoke (*gtk* "DrawingArea" :new)))
+        (print (list :drawing-area drawing-area))
         (gir:invoke (box "append") drawing-area)
         (gir:invoke (drawing-area "add_css_class") "view")
         (gir:invoke (drawing-area "set_draw_func")
