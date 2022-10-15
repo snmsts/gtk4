@@ -7,6 +7,7 @@
    :*gobject*
    :*pangocairo*
    :*pango*
+   :*cairo*
    :setup-namespace
    :init
    ))
@@ -20,6 +21,7 @@
 (defvar *gobject* nil)
 (defvar *pangocairo* nil)
 (defvar *pango* nil)
+(defvar *cairo* nil)
 
 (defun init ()
   (gir:invoke (*gtk* :init)))
@@ -37,4 +39,6 @@
     (setf *pangocairo* (gir:require-namespace "PangoCairo" "1.0")))
   (unless *pango*
     (setf *pango* (gir:require-namespace "Pango" "1.0")))
+  (unless *cairo*
+    (setf *cairo* (gir:require-namespace "cairo" "1.0")))
   t)
