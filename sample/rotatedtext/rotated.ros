@@ -21,6 +21,7 @@ exec ros -Q -- $0 "$@"
 
 (defparameter *text* "I ♥ ほげ")
 (defparameter *font* "Serif 18")
+;;(defparameter *font* "Courier New 18")
 (defparameter *radius* 150)
 (defparameter *n-words* 7)
 

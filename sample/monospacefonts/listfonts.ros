@@ -1,0 +1,42 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+;; https://blog.yjl.im/2012/12/listing-monospace-fonts-using-pango.html
+(progn ;;init forms
+  (ros:ensure-asdf)
+  (asdf:load-asd (truename "../../gtk4.asd"))
+  #+quicklisp(ql:quickload '(:gtk4
+                             :gtk4/swig/cairo
+                             :gtk4/swig/gtkwidget
+                             :gtk4/swig/pango_layout
+                             :gtk4/swig/pango_types
+                             :gtk4/swig/pango_cairo
+                             :gtk4/swig/pango_fontmap
+                             :gtk4/swig/pango_font
+                             ) :silent t))
+
+(defpackage :ros.script.listfonts.3875532327
+  (:use :cl))
+(in-package :ros.script.listfonts.3875532327)
+
+(defun main (&rest argv)
+  (declare (ignorable argv))
+  (let ((fmap (gtk4/pango_cairo:pango-cairo-font-map-get-default)))
+    (cffi:with-foreign-objects ((families :pointer)
+                                (n_families :int))
+      (setf (cffi:mem-ref families :pointer) (cffi:null-pointer)
+            (cffi:mem-aref n_families :int) 0)
+      (gtk4/pango_fontmap:pango-font-map-list-families fmap families n_families)
+      (loop for f from (1- (cffi:mem-aref n_families :int)) downto 0
+            for family = (cffi:mem-ref families :pointer)
+            for family[i] = (cffi:mem-aref (cffi:mem-ref families :pointer) :pointer f)
+            for is-monospace = (not (zerop (gtk4/swig/pango_font:pango-font-family-is-monospace family[i])))
+            when is-monospace
+            do (format t "~S~%"
+                       (list (gtk4/swig/pango_font:pango-font-family-get-name family[i]))))
+
+      (format t "n_families = ~A~%" (cffi:mem-aref n_families :int))
+      0)))
+;;; vim: set ft=lisp lisp:
