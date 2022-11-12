@@ -12,6 +12,7 @@
 (in-package :gtk4/swig/gtkwidget)
 
 (define-foreign-library libgtk4
+  (:win32 "libgtk-4-1")
   (t (:default "libgtk-4")))
 
 (unless (foreign-library-loaded-p 'libgtk4)

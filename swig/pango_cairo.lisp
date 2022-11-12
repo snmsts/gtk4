@@ -12,6 +12,7 @@
 (in-package :gtk4/swig/pango_cairo)
 
 (define-foreign-library libpango
+  (:win32 "libpango-1.0-0.dll")
   (t (:default "libpango-1.0")))
 
 (cffi:defcenum #.(swig-lispify "GUserDirectory" 'enumname)

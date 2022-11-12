@@ -12,6 +12,7 @@
 (in-package :gtk4/swig/cairo)
 
 (define-foreign-library libcairo
+  (:win32 "libcairo-2")
   (t (:default "libcairo")))
 
 (unless (foreign-library-loaded-p 'libcairo)
