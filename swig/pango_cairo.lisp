@@ -11,9 +11,12 @@
    ))
 (in-package :gtk4/swig/pango_cairo)
 
-(define-foreign-library libpango
-  (:win32 "libpango-1.0-0.dll")
-  (t (:default "libpango-1.0")))
+(define-foreign-library libpangocairo
+  (:win32 "libpangocairo-1.0-0.dll")
+  (t (:default "libpangocairo-1.0")))
+
+(unless (foreign-library-loaded-p 'libpangocairo)
+  (use-foreign-library libpangocairo))
 
 (cffi:defcenum #.(swig-lispify "GUserDirectory" 'enumname)
 	#.(swig-lispify "G_USER_DIRECTORY_DESKTOP" 'enumvalue :keyword)
